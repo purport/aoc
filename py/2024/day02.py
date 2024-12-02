@@ -1,16 +1,7 @@
 from sys import argv
 
-def check_report(report):
-    unsafes = [] 
-    inc = 0
-    dec = 0
-    prev = report[0]
-    for value in report[1::]:
-        if prev >= value: inc += 1
-        if prev <= value: dec += 1
-        unsafes.append((inc > 0 and dec > 0) or (inc == 0 and dec == 0) or abs(prev-value) > 3)
-        prev = value
-    return unsafes
+def check_diffs(diffs):
+    return all([-3 <= d < 0 for d in diffs]) or all([0 < d <= 3 for d in diffs])
 
 if __name__ ==  "__main__":
     with open(argv[1], 'r') as file:
@@ -19,14 +10,18 @@ if __name__ ==  "__main__":
         part1 = 0
         part2 = 0
         for report in grid:
-            unsafes = check_report(report)
-
-            if not True in unsafes:
+            diffs = [a-b for a, b in zip(report[0::], report[1::])]
+            if check_diffs(diffs):
                 part1 += 1
                 part2 += 1
             else:
-                for i in range(len(unsafes)+1):
-                    if not True in check_report(report[:i]+report[i+1:]):
+                for i in range(len(report)):
+                    fixed = diffs.copy()
+                    if i == 0:               del fixed[0]
+                    elif i == len(report)-1: del fixed[-1]
+                    else:                    fixed[i-1] += fixed.pop(i)
+
+                    if check_diffs(fixed):
                         part2 += 1
                         break
 
